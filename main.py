@@ -37,7 +37,7 @@ def text_to_speech(text, output_file):
 
 def main():
     # Example usage
-    text = "Hello, this is a test of the Blog to Podcast converter."
+    text = "Hello, this is a test of the Blog to Podcast converter. And we made a successful commit to Git hub"
     output_file = "output.wav"
     text_to_speech(text, output_file)
 
