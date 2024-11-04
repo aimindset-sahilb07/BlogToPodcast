@@ -1,51 +1,87 @@
+# app.py
 import gradio as gr
-from main import text_to_speech
+from main import TextToSpeechConverter
+import os
 
-def generate_podcast(text):
-    """
-    Generate a podcast (audio file) from the given text.
-    Args:
-    text (str): The input text to be converted to speech.
-    Returns:
-    str or None: The path to the generated audio file if successful, None if an error occurred.
-    """
-    output_file = "podcast.wav"
-    result = text_to_speech(text, output_file)
-    if result:
-        return output_file
-    else:
-        return None
+class PodcastGenerator:
+    def __init__(self):
+        # Initialize the converter
+        self.converter = TextToSpeechConverter()
+        
+    def generate_podcast(self, text):
+        """
+        Generate a conversational podcast from input text.
+        
+        Args:
+            text (str): Input text to convert to conversation
+        Returns:
+            tuple: (audio_file_path, status_message)
+        """
+        if not text:
+            return None, "Please enter some text to convert"
+            
+        try:
+            # Create output directory if it doesn't exist
+            os.makedirs('output', exist_ok=True)
+            
+            # Generate unique output filename in the output directory
+            output_file = os.path.join('output', f"podcast_conversation_{hash(text)}.wav")
+            
+            # Generate conversational audio
+            success, result, message = self.converter.create_conversation_audio(
+                text=text,
+                output_file=output_file
+            )
+            
+            if success:
+                return result, "✓ Podcast generated successfully!"
+            else:
+                return None, f"⚠ Error: {message}"
+                
+        except Exception as e:
+            return None, f"⚠ Error: {str(e)}"
 
-# Create the Gradio interface
-iface = gr.Interface(
-    # Specify the function to be called when the interface is used
-    fn=generate_podcast,
+def create_interface():
+    """Creates and configures the Gradio interface"""
+    generator = PodcastGenerator()
     
-    # Define the input component: a text box for user input
-    inputs=gr.Textbox(lines=10, label="Paste your text here. Upto 10 lines of text only"),
+    # Create the interface
+    iface = gr.Interface(
+        fn=generator.generate_podcast,
+        inputs=[
+            gr.Textbox(
+                lines=10,
+                label="Paste your text here",
+                placeholder="Enter the text you want to convert into a conversational podcast...",
+                info="Your text will be converted into a natural conversation between Alex and Sarah"
+            )
+        ],
+        outputs=[
+            gr.Audio(label="Generated Podcast"),
+            gr.Textbox(label="Status")
+        ],
+        title="Conversational Blog to Podcast Converter",
+        description="""Convert your text into an engaging conversation between two hosts (Alex and Sarah).
+        The content will be intelligently processed into a natural dialogue while maintaining key messages.""",
+        examples=[
+            ["AI is transforming content creation. New tools and technologies enable creators to produce high-quality content more efficiently than ever before. These developments are changing how we think about content production."],
+            ["The future of work is being reshaped by artificial intelligence. Companies are adopting AI tools to streamline operations and boost productivity. This shift is creating new opportunities and challenges for workers."]
+        ],
+        # Updated deprecated parameter
+        flagging_mode=None,
+        theme=gr.themes.Soft(),
+        article="""### How it works:
+        1. Enter your text in the input box
+        2. The AI processes it into a natural conversation
+        3. Two different voices bring the conversation to life
+        4. Download the generated podcast audio file
+        """
+    )
     
-    # Define the output component: an audio player to play the generated podcast
-    outputs=gr.Audio(label="Generated Podcast"),
-    
-    # Set the title of the interface
-    title="Blog to Podcast Converter",
-    
-    # Provide a description of what the interface does
-    description="1-Click Podcast from your text",
+    return iface
 
-     # Disable Flag Button
-     allow_flagging="never",
-    
-    # Provide example inputs for users to try
-    examples=[
-        ["Artificial Intelligence is rapidly evolving, transforming industries and our daily lives. From self-driving cars to advanced language models, AI is pushing the boundaries of what's possible."],
-        ["The importance of sustainable living cannot be overstated. By making small changes in our daily habits, we can contribute to a healthier planet and a brighter future for generations to come."]
-    ]
-
-   
-)
-
-# This block only runs if the script is executed directly (not imported as a module)
 if __name__ == "__main__":
-    # Launch the Gradio interface
-    iface.launch()
+    # Create and launch the interface
+    iface = create_interface()
+    # Launch with share=True to get a public URL
+    iface.launch(share=True)
