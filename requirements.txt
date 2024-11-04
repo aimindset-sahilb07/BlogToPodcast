@@ -1,0 +1,16 @@
+# Core Azure Services
+azure-cognitiveservices-speech==1.34.0
+openai==1.13.0
+
+# Web Interface
+gradio==4.19.2
+
+# Environment Variables
+python-dotenv==1.0.1
+
+# Audio Processing
+pydub==0.25.1
+
+# Development Tools (Optional)
+pylint==3.0.3
+black==24.2.0
